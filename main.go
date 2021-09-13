@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 )
@@ -63,42 +64,21 @@ func main() {
 	}
 }
 
-func intersect(f1, f2 *os.File) error {
+func intersect(f1, f2 *os.File) {
 	scanner1 := bufio.NewScanner(f1)
-	scanner2 := bufio.NewScanner(f2)
-	chReadLines2 := make(chan []string, 2)
-	go func() {
-		const limit = 4
-		readLines2 := make([]string, 0, limit)
-		for scanner2.Scan() {
-			line := scanner2.Text()
-			if len(line) == 0 {
-				continue
-			}
-			readLines2 = append(readLines2, line)
-			if len(readLines2) >= limit {
-				chReadLines2 <- readLines2
-				readLines2 = make([]string, 0, limit)
-			}
-		}
-		if len(readLines2) > 0 {
-			chReadLines2 <- readLines2
-		}
-		close(chReadLines2)
-	}()
 	searcher := &rowSearcher{
-		chRowsInBulk: chReadLines2,
+		chRowsInBulk: readLinesInBulk(f2, 64),
 	}
 	var lastLine string
 	for scanner1.Scan() {
-		 line := scanner1.Text()
-		 if len(line) == 0 {
-		 	continue
-		 }
-		 if line == lastLine {
+		line := scanner1.Text()
+		if len(line) == 0 {
+			continue
+		}
+		if line == lastLine {
 			 continue
-		 }
-		 lastLine = line
+		}
+		lastLine = line
 		var found, exhausted bool
 		for !found && !exhausted {
 			found, exhausted = searcher.Search(line)
@@ -106,13 +86,36 @@ func intersect(f1, f2 *os.File) error {
 				fmt.Println(line)
 			}
 			if exhausted {
-				return nil
+				return
 			}
 		}
 	}
-	return nil
 }
 
 func complement(f1, f2 *os.File) {
 	fmt.Printf("complement: %s, %s\n", f1.Name(), f2.Name())
+}
+
+func readLinesInBulk(reader io.Reader, bulkSize int) <-chan []string {
+	scanner2 := bufio.NewScanner(reader)
+	chReadLines2 := make(chan []string, 2)
+	go func() {
+		readLines2 := make([]string, 0, bulkSize)
+		for scanner2.Scan() {
+			line := scanner2.Text()
+			if len(line) == 0 {
+				continue
+			}
+			readLines2 = append(readLines2, line)
+			if len(readLines2) >= bulkSize {
+				chReadLines2 <- readLines2
+				readLines2 = make([]string, 0, bulkSize)
+			}
+		}
+		if len(readLines2) > 0 {
+			chReadLines2 <- readLines2
+		}
+		close(chReadLines2)
+	}()
+	return chReadLines2
 }
