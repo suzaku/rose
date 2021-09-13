@@ -14,7 +14,7 @@ type rowSearcher struct {
 	current []string
 }
 
-func (rs *rowSearcher) Search(row string) (found bool, exhausted bool) {
+func (rs *rowSearcher) Search(row string) (found bool, inRange bool, exhausted bool) {
 	if len(rs.current) == 0 {
 		var ok bool
 		select {
@@ -26,6 +26,7 @@ func (rs *rowSearcher) Search(row string) (found bool, exhausted bool) {
 	}
 	i := sort.SearchStrings(rs.current, row)
 	if i < len(rs.current) {
+		inRange = true
 		if rs.current[i] == row {
 			found = true
 		}
@@ -79,11 +80,14 @@ func intersect(f1, f2 *os.File) {
 			 continue
 		}
 		lastLine = line
-		var found, exhausted bool
-		for !found && !exhausted {
-			found, exhausted = searcher.Search(line)
+		for {
+			found, inRange, exhausted := searcher.Search(line)
 			if found {
 				fmt.Println(line)
+				break
+			}
+			if inRange {
+				break
 			}
 			if exhausted {
 				return
