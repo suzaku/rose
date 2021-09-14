@@ -97,7 +97,37 @@ func intersect(f1, f2 *os.File) {
 }
 
 func complement(f1, f2 *os.File) {
-	fmt.Printf("complement: %s, %s\n", f1.Name(), f2.Name())
+	scanner1 := bufio.NewScanner(f1)
+	searcher := &rowSearcher{
+		chRowsInBulk: readLinesInBulk(f2, 64),
+	}
+	var lastLine string
+	var f2Exhausted bool
+	for scanner1.Scan() {
+		line := scanner1.Text()
+		if len(line) == 0 {
+			continue
+		}
+		if line == lastLine {
+			continue
+		}
+		lastLine = line
+		if f2Exhausted {
+			fmt.Println(line)
+			continue
+		}
+		for {
+			found, inRange, exhausted := searcher.Search(line)
+			if found {
+				break
+			}
+			if inRange || exhausted {
+				fmt.Println(line)
+				f2Exhausted = exhausted
+				break
+			}
+		}
+	}
 }
 
 func readLinesInBulk(reader io.Reader, bulkSize int) <-chan []string {
