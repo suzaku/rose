@@ -18,97 +18,95 @@ package set
 
 import (
 	"bufio"
-	"fmt"
-	"os"
+	"io"
 )
 
-func Union(f1, f2 *os.File) {
-	scanner1 := bufio.NewScanner(f1)
-	chLine1 := make(chan string, 10)
-	var tmp1 string
+func Union(f1, f2 io.Reader) <-chan string {
+	ch := make(chan string, 16)
+	chLine1 := readNonEmptyLines(f1)
+	chLine2 := readNonEmptyLines(f2)
+
 	go func() {
-		for scanner1.Scan() {
-			line := scanner1.Text()
-			if len(line) == 0 {
-				continue
+		defer close(ch)
+		var tmp1, tmp2 string
+		var lastLine string
+	outer:
+		for {
+			var l1, l2 string
+			if len(tmp1) > 0 {
+				l1, tmp1 = tmp1, ""
+			} else {
+				var ok bool
+				select {
+				case l1, ok = <-chLine1:
+					if !ok {
+						break outer
+					}
+				}
 			}
-			chLine1 <- line
-		}
-		close(chLine1)
-	}()
-	scanner2 := bufio.NewScanner(f2)
-	chLine2 := make(chan string, 10)
-	var tmp2 string
-	go func() {
-		for scanner2.Scan() {
-			line := scanner2.Text()
-			if len(line) == 0 {
-				continue
+
+			if len(tmp2) > 0 {
+				l2, tmp2 = tmp2, ""
+			} else {
+				var ok bool
+				select {
+				case l2, ok = <-chLine2:
+					if !ok {
+						break outer
+					}
+				}
 			}
-			chLine2 <- line
+
+			if l1 < l2 {
+				if l1 != lastLine {
+					ch <- l1
+					lastLine = l1
+				}
+				tmp2 = l2
+			} else {
+				if l2 != lastLine {
+					ch <- l2
+					lastLine = l2
+				}
+				tmp1 = l1
+			}
 		}
-		close(chLine2)
-	}()
-	var lastLine string
-outer:
-	for {
-		var l1, l2 string
 		if len(tmp1) > 0 {
-			l1, tmp1 = tmp1, ""
-		} else {
-			var ok bool
-			select {
-			case l1, ok = <-chLine1:
-				if !ok {
-					break outer
-				}
-			}
+			ch <- tmp1
+			lastLine = tmp1
 		}
-
 		if len(tmp2) > 0 {
-			l2, tmp2 = tmp2, ""
-		} else {
-			var ok bool
-			select {
-			case l2, ok = <-chLine2:
-				if !ok {
-					break outer
-				}
+			ch <- tmp2
+			lastLine = tmp2
+		}
+		for l := range chLine1 {
+			if l != lastLine {
+				ch <- l
+				lastLine = l
 			}
 		}
+		for l := range chLine2 {
+			if l != lastLine {
+				ch <- l
+				lastLine = l
+			}
+		}
+	}()
+	return ch
+}
 
-		if l1 < l2 {
-			if l1 != lastLine {
-				fmt.Println(l1)
-				lastLine = l1
+func readNonEmptyLines(r io.Reader) <-chan string {
+	scanner := bufio.NewScanner(r)
+	chLine := make(chan string, 10)
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+			if len(line) == 0 {
+				continue
 			}
-			tmp2 = l2
-		} else {
-			if l2 != lastLine {
-				fmt.Println(l2)
-				lastLine = l2
-			}
-			tmp1 = l1
+			chLine <- line
 		}
-	}
-	if len(tmp1) > 0 {
-		fmt.Println(tmp1)
-		lastLine = tmp1
-	}
-	if len(tmp2) > 0 {
-		fmt.Println(tmp2)
-		lastLine = tmp2
-	}
-	for l := range chLine1 {
-		if l != lastLine {
-			fmt.Println(l)
-			lastLine = l
-		}
-	}
-	for l := range chLine2 {
-		if l != lastLine {
-			fmt.Println(l)
-			lastLine = l
-		}
-	}
+		close(chLine)
+	}()
+	return chLine
 }
