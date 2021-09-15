@@ -23,8 +23,8 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "rose",
-	Short: "Allows you to treat text files as sets of rows.",
-	Long: `Allows you to treat text files as sets of rows. The name comes from ROwSEt.
+	Short: "Carry out set operations on text files like they are sets of rows.",
+	Long: `Rose allows you to treat text files as sets of rows. The name comes from ROwSEt.
 The text files must be sorted. If they are not already sorted you can use the sort command.`,
 }
 
