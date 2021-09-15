@@ -90,11 +90,8 @@ type rowSearcher struct {
 func (rs *rowSearcher) Search(row string) (found bool, inRange bool, exhausted bool) {
 	if len(rs.current) == 0 {
 		var ok bool
-		select {
-		case rs.current, ok = <-rs.chRowsInBulk:
-			if !ok {
-				exhausted = true
-			}
+		if rs.current, ok = <-rs.chRowsInBulk; !ok {
+		  exhausted = true
 		}
 	}
 	i := sort.SearchStrings(rs.current, row)

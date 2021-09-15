@@ -37,11 +37,8 @@ func Union(f1, f2 io.Reader) <-chan string {
 				l1, tmp1 = tmp1, ""
 			} else {
 				var ok bool
-				select {
-				case l1, ok = <-chLine1:
-					if !ok {
-						break outer
-					}
+				if l1, ok = <-chLine1; !ok {
+				   break outer
 				}
 			}
 
@@ -49,11 +46,8 @@ func Union(f1, f2 io.Reader) <-chan string {
 				l2, tmp2 = tmp2, ""
 			} else {
 				var ok bool
-				select {
-				case l2, ok = <-chLine2:
-					if !ok {
-						break outer
-					}
+				if l2, ok = <-chLine2; !ok {
+				   break outer
 				}
 			}
 
