@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"github.com/suzaku/rose/set"
 	"os"
 
@@ -42,7 +43,9 @@ If they are not already sorted you can use the sort command. For example:
 			}
 			files[i] = file
 		}
-		set.Intersect(files[0], files[1])
+		for l := range set.Intersect(files[0], files[1]) {
+			fmt.Println(l)
+		}
 		return nil
 	},
 }
