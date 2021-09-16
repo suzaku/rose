@@ -1,0 +1,31 @@
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    replacements:
+      darwin: Mac
+      linux: Linux
+      386: i386
+      amd64: x86_64
+
+brews:
+  - tap:
+      owner: suzaku
+      name: homebrew
+    folder: Formula
+    homepage:  https://github.com/suzaku/rose
+    description: A command line tool that allows you to treat files as sets of rows and perform set operations on them.
+    test: |
+      system "#{bin}/rose -v"
+    install: |-
+      bin.install "rose"
