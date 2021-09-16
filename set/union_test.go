@@ -2,9 +2,10 @@ package set
 
 import (
 	"fmt"
-	"github.com/magiconair/properties/assert"
 	"strings"
 	"testing"
+
+	"github.com/magiconair/properties/assert"
 )
 
 func TestUnion(t *testing.T) {

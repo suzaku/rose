@@ -38,7 +38,7 @@ func Union(f1, f2 io.Reader) <-chan string {
 			} else {
 				var ok bool
 				if l1, ok = <-chLine1; !ok {
-				   break outer
+					break outer
 				}
 			}
 
@@ -47,7 +47,7 @@ func Union(f1, f2 io.Reader) <-chan string {
 			} else {
 				var ok bool
 				if l2, ok = <-chLine2; !ok {
-				   break outer
+					break outer
 				}
 			}
 

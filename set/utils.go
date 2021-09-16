@@ -48,7 +48,7 @@ func readLinesInBulk(reader io.Reader, bulkSize int) <-chan []string {
 
 type rowSearcher struct {
 	chRowsInBulk <-chan []string
-	current []string
+	current      []string
 }
 
 func (rs *rowSearcher) Search(row string) (found bool, inRange bool, exhausted bool) {

@@ -1,9 +1,10 @@
 package set
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubtract(t *testing.T) {
@@ -23,8 +24,8 @@ func TestSubtract(t *testing.T) {
 	})
 	t.Run("Only in first file", func(t *testing.T) {
 		testCases := []struct {
-			a string
-			b string
+			a      string
+			b      string
 			expect []string
 		}{
 			{a: "a\nb\nc\nd", b: "c\nd\ne", expect: []string{"a", "b"}},

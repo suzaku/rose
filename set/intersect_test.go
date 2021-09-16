@@ -2,10 +2,11 @@ package set
 
 import (
 	"fmt"
-	"github.com/magiconair/properties/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/magiconair/properties/assert"
 )
 
 func TestIntersect(t *testing.T) {
@@ -21,12 +22,12 @@ func TestIntersect(t *testing.T) {
 		x2 := "b\nd\ne\ng\nh\ni"
 		x3 := "e\ni"
 		testCases := []struct {
-			a string
-			b string
+			a      string
+			b      string
 			expect []string
 		}{
 			{a: x1, b: x2, expect: []string{"b", "d", "e"}},
-		    {a: x2, b: x1, expect: []string{"b", "d", "e"}},
+			{a: x2, b: x1, expect: []string{"b", "d", "e"}},
 			{a: x1, b: x3, expect: []string{"e"}},
 			{a: x3, b: x2, expect: []string{"e", "i"}},
 		}
@@ -49,8 +50,8 @@ func chToSlice(t *testing.T, ch <-chan string) []string {
 				return result
 			}
 			result = append(result, l)
-		 case <-timer.C:
-		 	t.Fatal("Timeout waiting for channel")
+		case <-timer.C:
+			t.Fatal("Timeout waiting for channel")
 		}
 		timer.Stop()
 	}

@@ -17,8 +17,9 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/suzaku/rose/set"
 	"os"
+
+	"github.com/suzaku/rose/set"
 
 	"github.com/spf13/cobra"
 )
