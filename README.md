@@ -42,6 +42,12 @@ rose sub file1 file2
 
 ## Installation
 
+### Homebrew
+
+```bash
+brew install suzaku/homebrew-rose/rose
+```
+
 ### Go
 
 ```bash
