@@ -33,10 +33,7 @@ func Subtract(f1, f2 io.Reader) <-chan string {
 		var f2Exhausted bool
 		for scanner1.Scan() {
 			line := scanner1.Text()
-			if len(line) == 0 {
-				continue
-			}
-			if line == lastLine {
+			if len(line) == 0 || line == lastLine {
 				continue
 			}
 			lastLine = line
