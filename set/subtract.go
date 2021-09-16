@@ -18,40 +18,44 @@ package set
 
 import (
 	"bufio"
-	"fmt"
-	"os"
+	"io"
 )
 
-func Subtract(f1, f2 *os.File) {
-	scanner1 := bufio.NewScanner(f1)
-	searcher := &rowSearcher{
-		chRowsInBulk: readLinesInBulk(f2, 64),
-	}
-	var lastLine string
-	var f2Exhausted bool
-	for scanner1.Scan() {
-		line := scanner1.Text()
-		if len(line) == 0 {
-			continue
+func Subtract(f1, f2 io.Reader) <-chan string {
+	ch := make(chan string, 16)
+	go func() {
+		defer close(ch)
+		scanner1 := bufio.NewScanner(f1)
+		searcher := &rowSearcher{
+			chRowsInBulk: readLinesInBulk(f2, 64),
 		}
-		if line == lastLine {
-			continue
-		}
-		lastLine = line
-		if f2Exhausted {
-			fmt.Println(line)
-			continue
-		}
-		for {
-			found, inRange, exhausted := searcher.Search(line)
-			if found {
-				break
+		var lastLine string
+		var f2Exhausted bool
+		for scanner1.Scan() {
+			line := scanner1.Text()
+			if len(line) == 0 {
+				continue
 			}
-			if inRange || exhausted {
-				fmt.Println(line)
-				f2Exhausted = exhausted
-				break
+			if line == lastLine {
+				continue
+			}
+			lastLine = line
+			if f2Exhausted {
+				ch <- line
+				continue
+			}
+			for {
+				found, inRange, exhausted := searcher.Search(line)
+				if found {
+					break
+				}
+				if inRange || exhausted {
+					ch <- line
+					f2Exhausted = exhausted
+					break
+				}
 			}
 		}
-	}
+	}()
+	return ch
 }
