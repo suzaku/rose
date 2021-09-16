@@ -27,7 +27,7 @@ var rootCmd = &cobra.Command{
 	Short: "Carry out set operations on text files like they are sets of rows.",
 	Long: `Rose allows you to treat text files as sets of rows. The name comes from ROwSEt.
 The text files must be sorted. If they are not already sorted you can use the sort command.`,
-	Version: "0.0.0",
+	Version: "0.0.1",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
