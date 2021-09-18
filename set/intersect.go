@@ -17,24 +17,18 @@ limitations under the License.
 package set
 
 import (
-	"bufio"
 	"io"
 )
 
 func Intersect(f1, f2 io.Reader) <-chan string {
 	ch := make(chan string, 16)
-	scanner1 := bufio.NewScanner(f1)
 	searcher := &rowSearcher{
 		chRowsInBulk: readLinesInBulk(f2, 64),
 	}
 	go func() {
 		defer close(ch)
 		var lastLine string
-		for scanner1.Scan() {
-			line := scanner1.Text()
-			if len(line) == 0 {
-				continue
-			}
+		for line := range readNonEmptyLines(f1) {
 			if line == lastLine {
 				continue
 			}
