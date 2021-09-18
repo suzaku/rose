@@ -17,23 +17,21 @@ limitations under the License.
 package set
 
 import (
-	"bufio"
 	"io"
 )
 
 func Subtract(f1, f2 io.Reader) <-chan string {
 	ch := make(chan string, 16)
+	chLines1 := readNonEmptyLines(f1)
 	go func() {
 		defer close(ch)
-		scanner1 := bufio.NewScanner(f1)
 		searcher := &rowSearcher{
 			chRowsInBulk: readLinesInBulk(f2, 64),
 		}
 		var lastLine string
 		var f2Exhausted bool
-		for scanner1.Scan() {
-			line := scanner1.Text()
-			if len(line) == 0 || line == lastLine {
+		for line := range chLines1 {
+			if line == lastLine {
 				continue
 			}
 			lastLine = line

@@ -69,3 +69,19 @@ func (rs *rowSearcher) Search(row string) (found bool, inRange bool, exhausted b
 	}
 	return
 }
+
+func readNonEmptyLines(r io.Reader) <-chan string {
+	scanner := bufio.NewScanner(r)
+	chLine := make(chan string, 10)
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+			if len(line) == 0 {
+				continue
+			}
+			chLine <- line
+		}
+		close(chLine)
+	}()
+	return chLine
+}

@@ -17,7 +17,6 @@ limitations under the License.
 package set
 
 import (
-	"bufio"
 	"io"
 )
 
@@ -87,20 +86,4 @@ func Union(f1, f2 io.Reader) <-chan string {
 		}
 	}()
 	return ch
-}
-
-func readNonEmptyLines(r io.Reader) <-chan string {
-	scanner := bufio.NewScanner(r)
-	chLine := make(chan string, 10)
-	go func() {
-		for scanner.Scan() {
-			line := scanner.Text()
-			if len(line) == 0 {
-				continue
-			}
-			chLine <- line
-		}
-		close(chLine)
-	}()
-	return chLine
 }
