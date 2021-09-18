@@ -20,10 +20,13 @@ import (
 	"io"
 )
 
-func Intersect(f1, f2 io.Reader) <-chan string {
+func Intersect(f1, f2 io.Reader, others ...io.Reader) <-chan string {
 	ch := make(chan string, 16)
-	searcher := &rowSearcher{
-		chRowsInBulk: readLinesInBulk(f2, 64),
+	const bulkSize = 64
+	rowSets := make([]*rowSearcher, 0, len(others)+1)
+	rowSets = append(rowSets, &rowSearcher{chRowsInBulk: readLinesInBulk(f2, bulkSize)})
+	for _, f := range others {
+		rowSets = append(rowSets, &rowSearcher{chRowsInBulk: readLinesInBulk(f, bulkSize)})
 	}
 	go func() {
 		defer close(ch)
@@ -33,15 +36,19 @@ func Intersect(f1, f2 io.Reader) <-chan string {
 				continue
 			}
 			lastLine = line
-			for {
-				found, exhausted := searcher.Search(line)
-				if found {
-					ch <- line
-				}
+			foundInAll := true
+			for _, set := range rowSets {
+				found, exhausted := set.Search(line)
 				if exhausted {
 					return
 				}
-				break
+				if !found {
+					foundInAll = false
+					break
+				}
+			}
+			if foundInAll {
+				ch <- line
 			}
 		}
 	}()

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIntersect(t *testing.T) {
@@ -36,6 +36,27 @@ func TestIntersect(t *testing.T) {
 			lines := chToSlice(t, ch)
 			assert.Equal(t, lines, tc.expect)
 		}
+	})
+	t.Run("More than two files", func(t *testing.T) {
+		x1 := "a\nb\nc\nd\ne\nf"
+		x2 := "d\ne\ni"
+		x3 := "b\nd\ne\ng\nh\ni"
+		x4 := "j\nk\n"
+		ch := Intersect(
+			strings.NewReader(x1),
+			strings.NewReader(x2),
+			strings.NewReader(x3),
+		)
+		lines := chToSlice(t, ch)
+		assert.Equal(t, lines, []string{"d", "e"})
+		ch = Intersect(
+			strings.NewReader(x1),
+			strings.NewReader(x2),
+			strings.NewReader(x3),
+			strings.NewReader(x4),
+		)
+		lines = chToSlice(t, ch)
+		assert.Empty(t, lines)
 	})
 }
 

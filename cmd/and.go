@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/suzaku/rose/set"
@@ -26,17 +27,17 @@ import (
 )
 
 var andCmd = &cobra.Command{
-	Use:   "and [file1] [file2]",
-	Short: "Outputs the intersection of file1 and file2",
-	Long: `Outputs lines that appear in both file1 and file2. Both files must be sorted.
+	Use:   "and [file1] [file2] [file3 ...]",
+	Short: "Outputs the intersection of two or more files.",
+	Long: `Outputs lines that appear in all the specified files. Both files must be sorted.
 If they are not already sorted you can use the sort command. For example:
 
 	rose and <(sort f1) <(sort f2)
 `,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var files [2]*os.File
-		for i := 0; i < 2; i++ {
+		files := make([]io.Reader, len(args))
+		for i := 0; i < len(args); i++ {
 			name := args[i]
 			file, err := os.Open(name)
 			if err != nil {
@@ -44,7 +45,7 @@ If they are not already sorted you can use the sort command. For example:
 			}
 			files[i] = file
 		}
-		for l := range set.Intersect(files[0], files[1]) {
+		for l := range set.Intersect(files[0], files[1], files[2:]...) {
 			fmt.Println(l)
 		}
 		return nil
