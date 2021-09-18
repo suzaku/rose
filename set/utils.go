@@ -51,21 +51,21 @@ type rowSearcher struct {
 	current      []string
 }
 
-func (rs *rowSearcher) Search(row string) (found bool, inRange bool, exhausted bool) {
+func (rs *rowSearcher) Search(row string) (found bool, exhausted bool) {
 	if len(rs.current) == 0 {
 		var ok bool
 		if rs.current, ok = <-rs.chRowsInBulk; !ok {
 			exhausted = true
+			return
 		}
 	}
 	i := sort.SearchStrings(rs.current, row)
-	if i < len(rs.current) {
-		inRange = true
-		if rs.current[i] == row {
-			found = true
-		}
-	} else {
+	if i >= len(rs.current) {
 		rs.current = nil
+		return rs.Search(row)
+	}
+	if rs.current[i] == row {
+		found = true
 	}
 	return
 }

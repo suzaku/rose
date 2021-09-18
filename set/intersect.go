@@ -34,17 +34,14 @@ func Intersect(f1, f2 io.Reader) <-chan string {
 			}
 			lastLine = line
 			for {
-				found, inRange, exhausted := searcher.Search(line)
+				found, exhausted := searcher.Search(line)
 				if found {
 					ch <- line
-					break
-				}
-				if inRange {
-					break
 				}
 				if exhausted {
 					return
 				}
+				break
 			}
 		}
 	}()

@@ -40,15 +40,14 @@ func Subtract(f1, f2 io.Reader) <-chan string {
 				continue
 			}
 			for {
-				found, inRange, exhausted := searcher.Search(line)
-				if found {
-					break
-				}
-				if inRange || exhausted {
+				found, exhausted := searcher.Search(line)
+				if !found {
 					ch <- line
-					f2Exhausted = exhausted
-					break
 				}
+				if exhausted {
+					f2Exhausted = exhausted
+				}
+				break
 			}
 		}
 	}()
