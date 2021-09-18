@@ -29,9 +29,7 @@ brews:
       system "#{bin}/rose -v"
     install: |-
       bin.install "rose"
-      system "#{bin}/rose completion zsh > /tmp/_rose"
-      zsh_completion.install "/tmp/_rose" => "_rose"
-      rm "/tmp/_rose"
-      system "#{bin}/rose completion bash > /tmp/rose.bash"
-      bash_completion.install "/tmp/rose.bash" => "rose"
-      rm "/tmp/rose.bash"
+      output = Utils.popen_read("#{bin}/rose completion bash")
+      (bash_completion/"rose").write output
+      output = Utils.popen_read("#{bin}/rose completion zsh")
+      (zsh_completion/"_rose").write output
