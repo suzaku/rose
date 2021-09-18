@@ -29,9 +29,9 @@ brews:
       system "#{bin}/rose -v"
     install: |-
       bin.install "rose"
-      system "rose completion zsh > /tmp/_rose"
+      system "#{bin}/rose completion zsh > /tmp/_rose"
       zsh_completion.install "/tmp/_rose" => "_rose"
-      system "rm /tmp/_rose"
-      system "rose completion bash > /tmp/rose.bash"
+      rm "/tmp/_rose"
+      system "#{bin}/rose completion bash > /tmp/rose.bash"
       bash_completion.install "/tmp/rose.bash" => "rose"
-      system "rm /tmp/rose.bash"
+      rm "/tmp/rose.bash"
