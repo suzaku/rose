@@ -46,4 +46,16 @@ func TestUnion(t *testing.T) {
 		lines := chToSlice(t, ch)
 		assert.Equal(t, lines, expect)
 	})
+	t.Run("More than two files", func(t *testing.T) {
+		x1 := "a\nc\ne\ng"
+		x2 := "c\nd\n"
+		x3 := "e\nf\ng\nh"
+		ch := Union(
+			strings.NewReader(x1),
+			strings.NewReader(x2),
+			strings.NewReader(x3),
+		)
+		lines := chToSlice(t, ch)
+		assert.Equal(t, lines, []string{"a", "c", "d", "e", "f", "g", "h"})
+	})
 }

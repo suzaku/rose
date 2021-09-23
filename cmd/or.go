@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/suzaku/rose/set"
@@ -26,24 +27,23 @@ import (
 )
 
 var orCmd = &cobra.Command{
-	Use:   "or [file1] [file2]",
-	Short: "Outputs the union of file1 and file2",
-	Long: `Outputs lines that appear in either file1 or file2. Both files must be sorted.
+	Use:   "or [file1] [file2] [files3...]",
+	Short: "Outputs the union of two or more files.",
+	Long: `Outputs lines that appear in any of the specified files. All files must be sorted.
 If they are not already sorted you can use the sort command. For example:
 
 	rose or <(sort f1) <(sort f2)`,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var files [2]*os.File
-		for i := 0; i < 2; i++ {
-			name := args[i]
+		files := make([]io.Reader, len(args))
+		for i, name := range args {
 			file, err := os.Open(name)
 			if err != nil {
 				return err
 			}
 			files[i] = file
 		}
-		for l := range set.Union(files[0], files[1]) {
+		for l := range set.Union(files...) {
 			fmt.Println(l)
 		}
 		return nil

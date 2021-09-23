@@ -29,7 +29,7 @@ import (
 var andCmd = &cobra.Command{
 	Use:   "and [file1] [file2] [file3 ...]",
 	Short: "Outputs the intersection of two or more files.",
-	Long: `Outputs lines that appear in all the specified files. Both files must be sorted.
+	Long: `Outputs lines that appear in all the specified files. All files must be sorted.
 If they are not already sorted you can use the sort command. For example:
 
 	rose and <(sort f1) <(sort f2)

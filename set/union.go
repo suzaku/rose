@@ -17,73 +17,99 @@ limitations under the License.
 package set
 
 import (
+	"container/heap"
+	"fmt"
 	"io"
 )
 
-func Union(f1, f2 io.Reader) <-chan string {
-	ch := make(chan string, 16)
-	chLine1 := readNonEmptyLines(f1)
-	chLine2 := readNonEmptyLines(f2)
+type rowSource struct {
+	ch  <-chan string
+	top string
+}
+
+func (rs *rowSource) Top() string {
+	if len(rs.top) == 0 {
+		var ok bool
+		select {
+		case rs.top, ok = <-rs.ch:
+			if !ok {
+				return ""
+			}
+		}
+	}
+	return rs.top
+}
+
+func (rs *rowSource) Next() bool {
+	rs.top = ""
+	var ok bool
+	select {
+	case rs.top, ok = <-rs.ch:
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func (rs *rowSource) String() string {
+	return fmt.Sprintf("<rowSource: top=%s>", rs.top)
+}
+
+type rowSources []*rowSource
+
+func (rs *rowSources) Push(x interface{}) {
+	*rs = append(*rs, x.(*rowSource))
+}
+
+func (rs *rowSources) Pop() interface{} {
+	old := *rs
+	n := len(old)
+	x := old[n-1]
+	*rs = old[0 : n-1]
+	return x
+}
+
+func (rs *rowSources) Len() int {
+	return len(*rs)
+}
+
+func (rs *rowSources) Less(i, j int) bool {
+	return (*rs)[i].Top() < (*rs)[j].Top()
+}
+
+func (rs *rowSources) Swap(i, j int) {
+	(*rs)[i], (*rs)[j] = (*rs)[j], (*rs)[i]
+}
+
+func Union(files ...io.Reader) <-chan string {
+	resultCh := make(chan string, 16)
+
+	sources := make(rowSources, len(files))
+	for i, f := range files {
+		sources[i] = &rowSource{
+			ch: readNonEmptyLines(f),
+		}
+	}
+
+	heap.Init(&sources)
 
 	go func() {
-		defer close(ch)
-		var tmp1, tmp2 string
-		var lastLine string
-	outer:
-		for {
-			var l1, l2 string
-			if len(tmp1) > 0 {
-				l1, tmp1 = tmp1, ""
-			} else {
-				var ok bool
-				if l1, ok = <-chLine1; !ok {
-					break outer
-				}
+		var lastRow string
+		for len(sources) > 0 {
+			popped := heap.Pop(&sources)
+			src := popped.(*rowSource)
+			row := src.Top()
+			if row != lastRow {
+				resultCh <- row
+				lastRow = row
 			}
-
-			if len(tmp2) > 0 {
-				l2, tmp2 = tmp2, ""
-			} else {
-				var ok bool
-				if l2, ok = <-chLine2; !ok {
-					break outer
-				}
-			}
-
-			if l1 < l2 {
-				if l1 != lastLine {
-					ch <- l1
-					lastLine = l1
-				}
-				tmp2 = l2
-			} else {
-				if l2 != lastLine {
-					ch <- l2
-					lastLine = l2
-				}
-				tmp1 = l1
+			if src.Next() {
+				heap.Push(&sources, src)
 			}
 		}
-		if len(tmp1) > 0 {
-			ch <- tmp1
-			lastLine = tmp1
-		}
-		if len(tmp2) > 0 {
-			ch <- tmp2
-			lastLine = tmp2
-		}
-		for l := range chLine1 {
-			if l != lastLine {
-				ch <- l
-				lastLine = l
-			}
-		}
-		for l := range chLine2 {
-			if l != lastLine {
-				ch <- l
-				lastLine = l
-			}
-		}
+		close(resultCh)
 	}()
-	return ch
+
+	return resultCh
 }
