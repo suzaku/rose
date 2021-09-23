@@ -30,11 +30,9 @@ type rowSource struct {
 func (rs *rowSource) Top() string {
 	if len(rs.top) == 0 {
 		var ok bool
-		select {
-		case rs.top, ok = <-rs.ch:
-			if !ok {
-				return ""
-			}
+		rs.top, ok = <-rs.ch
+		if !ok {
+			return ""
 		}
 	}
 	return rs.top
@@ -43,13 +41,8 @@ func (rs *rowSource) Top() string {
 func (rs *rowSource) Next() bool {
 	rs.top = ""
 	var ok bool
-	select {
-	case rs.top, ok = <-rs.ch:
-		if !ok {
-			return false
-		}
-	}
-	return true
+	rs.top, ok = <-rs.ch
+	return ok
 }
 
 func (rs *rowSource) String() string {
