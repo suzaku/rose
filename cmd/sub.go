@@ -17,6 +17,8 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+	"io"
 	"os"
 
 	"github.com/suzaku/rose/set"
@@ -33,7 +35,7 @@ If they are not already sorted you can use the sort command. For example:
 
 	rose sub <(sort f1) <(sort f2)`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var files [2]*os.File
+		var files [2]io.Reader
 		for i := 0; i < 2; i++ {
 			name := args[i]
 			file, err := os.Open(name)
@@ -42,7 +44,9 @@ If they are not already sorted you can use the sort command. For example:
 			}
 			files[i] = file
 		}
-		set.Subtract(files[0], files[1])
+		for l := range set.Subtract(files[0], files[1]) {
+			fmt.Println(l)
+		}
 		return nil
 	},
 }
