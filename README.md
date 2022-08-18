@@ -51,5 +51,5 @@ brew install suzaku/homebrew-rose/rose
 ### Go
 
 ```bash
-go get -u github.com/suzaku/rose
+go install github.com/suzaku/rose@latest
 ```
